@@ -1,0 +1,241 @@
+﻿
+@using BOS.StarterCode.Helpers;
+
+@model dynamic;
+
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<script type="text/javascript">
+    var Model=@JavaScriptConvert.SerializeObject(Model);
+    Model.Role =@(JavaScriptConvert.SerializeObject(User.FindFirst(c => c.Type == "Role").Value.ToString()));
+    @{
+        var UserRole = User.FindFirst(c => c.Type == "Role").Value.ToString();
+        var IsUserAllowed = UserRole.Contains("Admin");
+        var rolesList = UserRole.Split(',').ToList();
+        var Operations = Model.Operations;
+    }
+</script>
+<a id="show-sidebar" class="btn btn-sm btn-dark" href="#">
+    <i class="fas fa-bars"></i>
+</a>
+<nav id="sidebar" class="sidebar-wrapper">
+    <div class="sidebar-content">
+        <div class="sidebar-brand">
+            <a href="#">
+                <img src="../images/logo.png" />
+            </a>
+            <div id="close-sidebar">
+                <i class="fas fa-times"></i>
+            </div>
+        </div>
+        <div class="sidebar-header">
+            <div class="user-pic">
+                <img class="img-responsive img-rounded" src="https://raw.githubusercontent.com/azouaoui-med/pro-sidebar-template/gh-pages/src/img/user.jpg"
+                     alt="User picture">
+            </div>
+            <div class="user-info">
+                <strong>@Model.Username</strong>
+                <span class="user-role">@Model.Roles</span>
+                <span class="user-status">
+                    <i class="fa fa-circle"></i>
+                    <span>Online</span>
+                </span>
+            </div>
+        </div>
+        <div class="sidebar-menu">
+            <ul>
+                <partial name="~/Views/Shared/NavigationMenu.cshtml" />
+            </ul>
+        </div>
+        <!-- sidebar-menu  -->
+    </div>
+    <!-- sidebar-content  -->
+    <div class="sidebar-footer">
+        <a href="#">
+            <i class="fa fa-bell"></i>
+            <span class="badge badge-pill badge-warning notification">3</span>
+        </a>
+        <a href="#">
+            <i class="fa fa-envelope"></i>
+            <span class="badge badge-pill badge-success notification">7</span>
+        </a>
+        <a href="#">
+            <i class="fa fa-cog"></i>
+            <span class="badge-sonar"></span>
+        </a>
+        <a href="#">
+            <i class="fa fa-power-off" onclick="InitiateLogout();"></i>
+        </a>
+    </div>
+</nav>
+<main class="page-content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>My Profile</h1>
+                <hr />
+            </div>
+            <div class="col-md-6">
+                @{
+                    @if (Operations.Contains("PVIEW"))
+                    {
+                        <div class="row">
+                            <div class="col-md-12">
+                                <form class="d-block" style="width:100%">
+                                    <div class="row">
+
+                                        <div class="col-md-6 mt-3">
+                                            <div class="form-group">
+                                                <label for="@Model.UserInfo.FirstName">
+                                                    First Name
+                                                </label>
+                                                <input type="text" id="first_name" class="form-control" placeholder="Enter First Name" value="@Model.UserInfo.FirstName" disabled />
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6 mt-3">
+                                            <div class="form-group">
+                                                <label for="@Model.UserInfo.LastName">
+                                                    Last Name
+                                                </label>
+                                                <input type="text" id="last_name" class="form-control" placeholder="Enter Last Name" value="@Model.UserInfo.LastName" disabled />
+                                            </div>
+                                        </div>
+
+                                        <div class="col-sm-12 mt-3">
+                                            <div class="form-group">
+                                                <label for="@Model.UserInfo.Username">
+                                                    User Name
+                                                </label>
+                                                @if (Operations.Contains("PEDIT"))
+                                                {
+                                                    <input type="email" id="email" class="form-control" placeholder="Enter Email Address" value="@Model.UserInfo.Username" required />
+                                                }
+                                                else
+                                                {
+                                                    <input type="email" id="email" class="form-control" placeholder="Enter Email Address" value="@Model.UserInfo.Username" disabled />
+                                                }
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6 mt-3 disabled">
+                                            <div class="form-group" id="divRoleBase">
+                                                <label for="@Model.UserInfo.Roles">
+                                                    Roles
+                                                </label>
+                                                <br />
+                                                @{
+                                                    @foreach (var role in Model.AvailableRoles)
+                                                    {
+                                                        @if (rolesList.Contains(role.Name.ToString()))
+                                                        {
+                                                            <input type="checkbox" value="@role.Id" id="@role.Id" for="@role.Id" checked="checked" disabled /> @role.Name <br />
+                                                        }
+                                                    }
+                                                }
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6"></div>
+                                        <div class="col-sm-6">
+                                            <div class="form-group">
+                                                @if (Operations.Contains("PEDIT"))
+                                                {
+                                                    <button class="btn btn-primary" onclick="UpdateUsername(); return false;">Update</button>
+                                                }
+                                                else
+                                                {
+                                                    <button class="btn btn-primary" disabled>Update</button>
+                                                }
+                                            </div>
+                                            @Html.ValidationMessage("CustomError")
+                                        </div>
+                                        <div class="col-sm-6 text-right">
+                                            @if (Operations.Contains("CHPWD"))
+                                            {
+                                                <form>
+                                                    <button class="btn btn-primary" asp-action="ChangePassword">Change Password</button>
+                                                    @Html.ValidationMessage("CustomError")
+                                                </form>
+                                            }
+                                        </div>
+
+                                    </div>
+                                </form>
+                            </div>
+
+                        </div>
+                    }
+                    else
+                    {
+                        <h3> Sorry, You have no access to this feature! </h3>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+    @{
+        @Html.Hidden("IsUserAllowed", IsUserAllowed);
+    }
+</main>
+
+
+@if (ViewBag.Message != null)
+{
+    <script>
+        $(document).ready(function () {
+            $(function () {
+                setTimeout(function () {
+                    alert(@ViewBag.Message);
+                 DisplayDialog({ Success: true, Message: '@ViewBag.Message' });
+                }, 500);
+            });
+        });
+    </script>
+}
+
+
+@if (Model.CurrentModuleId != null)
+{
+    <script>
+        var currentModule = $('a[id^="' + Model.CurrentModuleId + '"]');
+
+        currentModule.next(".sidebar-submenu").slideDown(200);
+        currentModule.parent().addClass("active");
+    </script>
+}
+
+<script type="text/javascript">
+    jQuery(function ($) {
+
+        //$(".sidebar-dropdown > a").click(function () {
+        //    $(".sidebar-submenu").slideUp(200);
+        //    if ($(this).parent().hasClass("active")) {
+        //        $(".sidebar-dropdown").removeClass("active");
+        //        $(this).parent().removeClass("active");
+        //    } else {
+        //        $(".sidebar-dropdown").removeClass("active");
+        //        $(this).next(".sidebar-submenu").slideDown(200);
+        //        $(this).parent().addClass("active");
+        //    }
+        //});
+
+        $("#close-sidebar").click(function () {
+            $(".page-wrapper").removeClass("toggled");
+        });
+        $("#show-sidebar").click(function () {
+            $(".page-wrapper").addClass("toggled");
+        });
+    });
+</script>
+
+<style>
+    .field-validation-error {
+        color: red;
+    }
+</style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

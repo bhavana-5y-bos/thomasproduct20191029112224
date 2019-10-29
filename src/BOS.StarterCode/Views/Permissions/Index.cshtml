@@ -1,0 +1,208 @@
+﻿
+@using BOS.StarterCode.Helpers;
+
+@model dynamic;
+
+@{
+    ViewData["Title"] = "Permissions";
+}
+
+<script type="text/javascript">
+
+        var Model=@JavaScriptConvert.SerializeObject(Model);
+        Model.Role =@(JavaScriptConvert.SerializeObject(User.FindFirst(c => c.Type == "Role").Value.ToString()));
+        @{
+            var UserRole = User.FindFirst(c => c.Type == "Role").Value.ToString();
+            var IsuserAllowed = UserRole.Contains("Admin");
+         }
+
+</script>
+
+
+<a id="show-sidebar" class="btn btn-sm btn-dark" href="#">
+    <i class="fas fa-bars"></i>
+</a>
+
+<nav id="sidebar" class="sidebar-wrapper">
+    <div class="sidebar-content">
+        <div class="sidebar-brand">
+            <a href="#">
+                <img src="../images/logo.png" />
+            </a>
+            <div id="close-sidebar">
+                <i class="fas fa-times"></i>
+            </div>
+        </div>
+        <div class="sidebar-header">
+            <div class="user-pic">
+                <img class="img-responsive img-rounded" src="https://raw.githubusercontent.com/azouaoui-med/pro-sidebar-template/gh-pages/src/img/user.jpg"
+                     alt="User picture">
+            </div>
+            <div class="user-info">
+                <strong>@Model.Username</strong>
+                <span class="user-role">@Model.Roles</span>
+                <span class="user-status">
+                    <i class="fa fa-circle"></i>
+                    <span>Online</span>
+                </span>
+            </div>
+        </div>
+        <div class="sidebar-menu">
+            <ul>
+                <partial name="~/Views/Shared/NavigationMenu.cshtml" />
+            </ul>
+        </div>
+        <!-- sidebar-menu  -->
+    </div>
+    <!-- sidebar-content  -->
+    <div class="sidebar-footer">
+        <a href="#">
+            <i class="fa fa-bell"></i>
+            <span class="badge badge-pill badge-warning notification">3</span>
+        </a>
+        <a href="#">
+            <i class="fa fa-envelope"></i>
+            <span class="badge badge-pill badge-success notification">7</span>
+        </a>
+        <a href="#">
+            <i class="fa fa-cog"></i>
+            <span class="badge-sonar"></span>
+        </a>
+        <a href="#">
+            <i class="fa fa-power-off" onclick="InitiateLogout();"></i>
+        </a>
+    </div>
+</nav>
+
+<main class="page-content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>Permissions</h1>
+                <h4 class="mb-4">@Model.RoleName</h4>
+                <input class="btn btn-primary mr-2" type="button" onclick="OnPermissionsSave(); return false;" value="Save Permissions" />
+                <a asp-action="BackToRoles">Back to Roles</a>
+            </div>
+            <div class="col-md-12">
+                <div class="row mt-4" id="divPermissionsBase">
+                    <div class="col-md-12">
+                        @if (Model.ModuleOperations != null)
+                        {
+                            @foreach (var module in Model.ModuleOperations)
+                            {
+                                <ul class="modules-list-edit">
+                                    <li class="module js_module js_module_child" id="@module.Id">
+                                        <div class="li-body">
+                                            <div class="col-sm-12">
+                                                <div class="modules">
+                                                    @if (module.IsPermitted)
+                                                    {
+                                                        <input id="@module.Id" name="@module.Name" code="@module.Code" isdefault="@module.IsDefault" type="checkbox" class="modulecheck" checked="checked">
+                                                    }
+                                                    else
+                                                    {
+                                                        <input id="@module.Id" name="@module.Name" code="@module.Code" isdefault="@module.IsDefault" type="checkbox" class="modulecheck">
+                                                    }
+
+                                                    <label for="@module.Id"><i class="fas fa-cube" aria-hidden="true"></i>@module.Name</label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        @if (module.Operations.Count > 0)
+                                        {
+                                            @foreach (var operation in module.Operations)
+                                            {
+                                                <ul class="mt-2 js_op_container">
+                                                    <li class="js_operation js_op_child" id="@operation.Id">
+                                                        <div class="li-body">
+                                                            <div class="col-sm-12">
+                                                                <div class="checkboxwrapper operations">
+                                                                    @if (operation.IsPermitted)
+                                                                    {
+                                                                        <input type="checkbox" id="@operation.Id" name="@operation.Name" moduleid="@module.Id" code="@operation.Code" isdefault="@operation.IsDefault" class="operationcheck" checked="checked">
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <input type="checkbox" id="@operation.Id" name="@operation.Name" moduleid="@module.Id" code="@operation.Code" isdefault="@operation.IsDefault" class="operationcheck">
+                                                                    }
+                                                                    <label for="@operation.Id"><i class="fas fa-cog" aria-hidden="true"></i>@operation.Name</label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                </ul>
+                                            }
+                                        }
+                                    </li>
+                                </ul>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+
+
+<input type="hidden" id="hiddenOwnerId" value="@Model.OwnerId" />
+
+
+
+<script type="text/javascript">
+    $(document).mouseup(function (e) {
+        var container = $("#action_div");
+        if (!container.is(e.target) && container.has(e.target).length === 0) {
+            container.hide();
+        }
+    });
+    $(function () {
+        $('#show_action_div').click(function () {
+            $('#action_div').show();
+            return false;
+        });
+    });
+    jQuery(function ($) {
+
+        $(".sidebar-dropdown > a").click(function () {
+            $(".sidebar-submenu").slideUp(200);
+            if (
+                $(this)
+                    .parent()
+                    .hasClass("active")
+            ) {
+                $(".sidebar-dropdown").removeClass("active");
+                $(this)
+                    .parent()
+                    .removeClass("active");
+            } else {
+                $(".sidebar-dropdown").removeClass("active");
+                $(this)
+                    .next(".sidebar-submenu")
+                    .slideDown(200);
+                $(this)
+                    .parent()
+                    .addClass("active");
+            }
+        });
+
+        $("#close-sidebar").click(function () {
+            $(".page-wrapper").removeClass("toggled");
+        });
+        $("#show-sidebar").click(function () {
+            $(".page-wrapper").addClass("toggled");
+        });
+    });
+
+    function InitiateLogout() {
+        DisplayConfirmationDialog({
+            Message: "Are you sure you want to logouxxt?",
+            CallFrom: "Logout",
+            OkData: { Label: "Yes", Data: null },
+            CancelData: { Label: "No", Data: null }
+        });
+    }
+
+</script>

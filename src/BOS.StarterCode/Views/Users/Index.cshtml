@@ -1,0 +1,294 @@
+﻿
+@using BOS.StarterCode.Helpers;
+
+
+@model dynamic;
+
+@{
+    ViewData["Title"] = "Users";
+}
+
+<script type="text/javascript">
+
+        var Model=@JavaScriptConvert.SerializeObject(Model);
+        Model.Role =@(JavaScriptConvert.SerializeObject(User.FindFirst(c => c.Type == "Role").Value.ToString()));
+        @{
+            var UserRole = User.FindFirst(c => c.Type == "Role").Value.ToString();
+            var IsuserAllowed = UserRole.Contains("Admin");
+            var Operations = Model.Operations;
+         }
+
+</script>
+
+
+<a id="show-sidebar" class="btn btn-sm btn-dark" href="#">
+    <i class="fas fa-bars"></i>
+</a>
+
+<nav id="sidebar" class="sidebar-wrapper">
+    <div class="sidebar-content">
+        <div class="sidebar-brand">
+            <a href="#">
+                <img src="../images/logo.png" />
+            </a>
+            <div id="close-sidebar">
+                <i class="fas fa-times"></i>
+            </div>
+        </div>
+        <div class="sidebar-header">
+            <div class="user-pic">
+                <img class="img-responsive img-rounded" src="https://raw.githubusercontent.com/azouaoui-med/pro-sidebar-template/gh-pages/src/img/user.jpg"
+                     alt="User picture">
+            </div>
+            <div class="user-info">
+                <strong>@Model.Username</strong>
+                <span class="user-role">@Model.Roles</span>
+                <span class="user-status">
+                    <i class="fa fa-circle"></i>
+                    <span>Online</span>
+                </span>
+            </div>
+        </div>
+        <div class="sidebar-menu">
+            <ul>
+                <partial name="~/Views/Shared/NavigationMenu.cshtml" />
+            </ul>
+        </div>
+        <!-- sidebar-menu  -->
+    </div>
+    <!-- sidebar-content  -->
+    <div class="sidebar-footer">
+        <a href="#">
+            <i class="fa fa-bell"></i>
+            <span class="badge badge-pill badge-warning notification">3</span>
+        </a>
+        <a href="#">
+            <i class="fa fa-envelope"></i>
+            <span class="badge badge-pill badge-success notification">7</span>
+        </a>
+        <a href="#">
+            <i class="fa fa-cog"></i>
+            <span class="badge-sonar"></span>
+        </a>
+        <a href="#">
+            <i class="fa fa-power-off" onclick="InitiateLogout();"></i>
+        </a>
+    </div>
+</nav>
+
+<main class="page-content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>Users</h1>
+            </div>
+            <div class="col-md-12">
+                <div class="row">
+
+                    @if (Operations.Contains("UUADD"))
+                    {
+
+                        <div class="col-md-12">
+                            <form>
+                                <div class="form-group">
+                                    <button class="btn btn-primary float-right" style="margin-left: 10px" asp-action="AddNewUser">Add User</button>
+                                </div>
+                            </form>
+                        </div>
+
+                    }
+
+                    @if (Operations.Contains("ULIST") || Operations.Contains("UVIEW"))
+                    {
+                        <div class="col-md-12 mt-3">
+                            <div class="table-responsive">
+                                <table class="table user_table" id="tableUsers">
+                                    <thead>
+                                        <tr>
+                                            <th>FIRST NAME</th>
+                                            <th>LAST NAME</th>
+                                            <th>USERNAME</th>
+                                            <th>EMAIL</th>
+                                            <th>ROLES</th>
+                                            <th>ADDED ON</th>
+                                            @if (Operations.Contains("UEDIT") || Operations.Contains("RSPWD") || Operations.Contains("UDLTE"))
+                                            {
+                                                <th>ACTION</th>
+                                            }
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @{
+                                            @foreach (var user in Model.UserList)
+                                            {
+                                                <tr id="@user.UpdatedId">
+                                                    <td>@user.FirstName</td>
+                                                    <td>@user.LastName</td>
+                                                    <td>@user.Username</td>
+                                                    <td>@user.Email</td>
+                                                    <td>@user.Roles.Count</td>
+                                                    <td>@user.CreatedOn</td>
+                                                    @if (Operations.Contains("UEDIT") || Operations.Contains("RSPWD") || Operations.Contains("UDLTE"))
+                                                    {
+                                                        <td>
+                                                            <div class="fas fa-ellipsis-v position-relative pointer" id="userrow__@user.UpdatedId" onclick="OnUserRowActionClicked(this); return false;">
+                                                                <div class="action_div" id="action_div__@user.UpdatedId">
+                                                                    <ul>
+                                                                        @if (Operations.Contains("UEDIT"))
+                                                                        {
+                                                                            <li><a href="#" id="@user.UpdatedId" onclick="OnUserEditClicked(this); return false">Edit</a></li>
+                                                                        }
+
+                                                                        @if (Operations.Contains("RSPWD"))
+                                                                        {
+                                                                            <li><a href="#" id="@user.UpdatedId" onclick="OnChangePasswordClicked(this); return false">Change Password</a></li>
+                                                                        }
+
+                                                                        @if (Operations.Contains("UDLTE"))
+                                                                        {
+                                                                            <li><a href="#" id="@user.UpdatedId" onclick="OnUserDeleteClicked(this); return false">Delete</a></li>
+                                                                        }
+                                                                    </ul>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    }
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <h3> Sorry, you have no access to this feature! </h3>
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+
+
+
+
+
+<a id="hiddenUserEdit" href="" class="none"></a>
+
+
+<div class="modal fade" id="myModal" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Set Password</h4>
+            </div>
+            <div class="modal-body">
+                <div class="col-sm-12">
+                    <div class="position-relative">
+                        <label class="control-label">Password</label>
+                        <input class="form-control" type="password" placeholder="Enter password" id="password" required />
+                    </div>
+                </div>
+                <br />
+                <div class="col-sm-12">
+                    <div class="position-relative">
+                        <label class="control-label">Confirm Password</label>
+                        <input class="form-control" type="password" placeholder="Retype the password" id="confirmpassword" required />
+                        <span id='message'></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary mr-1" data-dismiss="modal">Cancel</button>
+
+                <button type="button" class="btn btn-primary" onclick="SetPassword(); return false;">Set</button>
+            </div>
+        </div>
+        <input type="hidden" id="hiddenUserIdChangePwd" />
+    </div>
+</div>
+
+@if (ViewBag.Message != null)
+{
+    <script>
+        $(document).ready(function () {
+            $(function () {
+                DisplayDialog({ Success: true, Message: '@ViewBag.Message' });
+            });
+        });
+    </script>
+}
+<script type="text/javascript">
+    $('#confirmpassword').on('keyup', function () {
+        if ($('#password').val() == $('#confirmpassword').val()) {
+            $('#message').html('');
+        } else
+            $('#message').html('Not Matching').css('color', 'red');
+    });
+
+
+    $(document).mouseup(function (e) {
+        var container = $("#action_div");
+        if (!container.is(e.target) && container.has(e.target).length === 0) {
+            container.hide();
+        }
+        $(".action_div").hide();
+    });
+
+    $(function () {
+        $('#show_action_div').click(function () {
+            $('#action_div').show();
+            return false;
+        });
+    });
+
+
+    jQuery(function ($) {
+
+        $(".sidebar-dropdown > a").click(function () {
+            $(".sidebar-submenu").slideUp(200);
+            if (
+                $(this)
+                    .parent()
+                    .hasClass("active")
+            ) {
+                $(".sidebar-dropdown").removeClass("active");
+                $(this)
+                    .parent()
+                    .removeClass("active");
+            } else {
+                $(".sidebar-dropdown").removeClass("active");
+                $(this)
+                    .next(".sidebar-submenu")
+                    .slideDown(200);
+                $(this)
+                    .parent()
+                    .addClass("active");
+            }
+        });
+
+        $("#close-sidebar").click(function () {
+            $(".page-wrapper").removeClass("toggled");
+        });
+
+        $("#show-sidebar").click(function () {
+            $(".page-wrapper").addClass("toggled");
+        });
+    });
+
+    function OnUserRowActionClicked(row) {
+        var selectedId = row.id.split('__')[1];
+        var selectedElement = document.getElementById("action_div__" + selectedId);
+        if (selectedElement.style.display === "none") {
+            selectedElement.style.display = "block";
+        } else {
+            selectedElement.style.display = "none";
+        }
+    }
+</script>

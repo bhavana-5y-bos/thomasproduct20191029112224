@@ -1,0 +1,136 @@
+﻿@using BOS.StarterCode.Helpers;
+
+@model dynamic;
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<script type="text/javascript">
+
+    var Model=@JavaScriptConvert.SerializeObject(Model);
+    Model.Role =@(JavaScriptConvert.SerializeObject(User.FindFirst(c => c.Type == "Role").Value.ToString()));
+    @{
+        var UserRole = User.FindFirst(c => c.Type == "Role").Value.ToString();
+        var IsuserAllowed = UserRole.Contains("Admin");
+     }
+
+</script>
+
+
+<a id="show-sidebar" class="btn btn-sm btn-dark" href="#">
+    <i class="fas fa-bars"></i>
+</a>
+
+<nav id="sidebar" class="sidebar-wrapper">
+    <div class="sidebar-content">
+        <div class="sidebar-brand">
+            <a href="#">
+                <img src="../images/logo.png" />
+            </a>
+            <div id="close-sidebar">
+                <i class="fas fa-times"></i>
+            </div>
+        </div>
+        <div class="sidebar-header">
+            <div class="user-pic">
+                <img class="img-responsive img-rounded" src="https://raw.githubusercontent.com/azouaoui-med/pro-sidebar-template/gh-pages/src/img/user.jpg"
+                     alt="User picture">
+            </div>
+            <div class="user-info">
+                <strong>@Model.Username</strong>
+                <span class="user-role">@Model.Roles</span>
+                <span class="user-status">
+                    <i class="fa fa-circle"></i>
+                    <span>Online</span>
+                </span>
+            </div>
+        </div>
+        <div class="sidebar-menu">
+            <ul id="navigation-tree">
+                <partial name="~/Views/Shared/NavigationMenu.cshtml" />
+            </ul>
+        </div>
+        <!-- sidebar-menu  -->
+    </div>
+    <!-- sidebar-content  -->
+    <div class="sidebar-footer">
+        <a href="#">
+            <i class="fa fa-bell"></i>
+            <span class="badge badge-pill badge-warning notification">3</span>
+        </a>
+        <a href="#">
+            <i class="fa fa-envelope"></i>
+            <span class="badge badge-pill badge-success notification">7</span>
+        </a>
+        <a href="#">
+            <i class="fa fa-cog"></i>
+            <span class="badge-sonar"></span>
+        </a>
+        <a href="#">
+            <i class="fa fa-power-off" onclick="InitiateLogout();"></i>
+        </a>
+    </div>
+</nav>
+<main class="page-content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>Dashboard</h1>
+            </div>
+            <div class="col-md-12">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h4 style="color:#ffcc00">The Dashboard page comes here</h4>
+                    </div>
+                    @{
+                        if (ViewBag.ModuleSelected != null)
+                        {
+                            <br />
+                            <h5> @ViewBag.ModuleSelected</h5>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+
+
+
+
+
+
+@if (Model.CurrentModuleId != null)
+{
+    <script>
+        $(document).ready(function () {
+            someRandomFunction(Model.CurrentModuleId);
+        });
+    </script>
+}
+
+<script type="text/javascript">
+    jQuery(function ($) {
+        //$(".sidebar-dropdown > a").click(function () {
+        //    $(".sidebar-submenu").slideUp(200);
+        //    if ($(this).parent().hasClass("active")) {
+        //        $(".sidebar-dropdown").removeClass("active");
+        //        $(this).parent().removeClass("active");
+        //    } else {
+        //        $(".sidebar-dropdown").removeClass("active");
+        //        $(this).next(".sidebar-submenu").slideDown(200);
+        //        $(this).parent().addClass("active");
+        //    }
+        //});
+
+        $("#close-sidebar").click(function () {
+            $(".page-wrapper").removeClass("toggled");
+        });
+
+        $("#show-sidebar").click(function () {
+            $(".page-wrapper").addClass("toggled");
+        });
+    });
+</script>
